@@ -1,4 +1,4 @@
-flask-postgresql-blog
-=====================
+example-python-flask
+====================
 
-Flask/PostgreSQL Blog example for use with OpDemand
+Example Python/Flask application for use with OpDemand.
