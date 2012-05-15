@@ -18,7 +18,7 @@ The simplest way to get started is by forking OpDemand's sample application loca
 
 After forking the project, clone it to your local workstation using the SSH-style URL:
 
-    $ git clone git@github.com:gabrtv/example-python-flask.git example-python-flask
+    $ git clone git@github.com:<yourname>/example-python-flask.git example-python-flask
     $ cd example-python-flask
 
 If you want to use an existing application, no problem -- just make sure you've cloned it from GitHub.
@@ -35,7 +35,7 @@ If you're deploying the example application, it already conforms to these requir
 
 ### Use virtualenv and pip to manage dependencies
 
-On every deploy action, OpDemand will run an `source venv/bin/activate` followed by a `pip install -r requirements.txt` on all application workers to ensure dependencies are up to date.  
+On every deploy action, OpDemand will run an `source venv/bin/activate` followed by a `pip install -r requirements.txt` on all application workers to ensure dependencies are up to date.
 
 To setup and activate virtualenv on your local workstation:
 
@@ -54,7 +54,7 @@ When you're done installing dependencies, use `pip freeze` to write out a new `r
 
 OpDemand uses a Foreman Procfile to manage the processes that serve up your application.  The `Procfile` is how you define the command(s) used to run your application.  Here is an example `Procfile` that uses gunicorn:
 
-	web: gunicorn -b 0.0.0.0:$APPLICATION_PORT -k gevent app:app
+	web: gunicorn -b 0.0.0.0:$APPLICATION_PORT app:app
 
 This tells OpDemand to run one web process using `gunicorn`.  You can test this out locally by running setting the `APPLICATION_PORT` environment variable and calling `foreman start`.
 
@@ -63,9 +63,9 @@ This tells OpDemand to run one web process using `gunicorn`.  You can test this 
     12:45:57 web.1     | started with pid 26809
     12:45:58 web.1     | 2012-05-10 12:45:57 [26809] [INFO] Starting gunicorn 0.14.2
     12:45:58 web.1     | 2012-05-10 12:45:58 [26809] [INFO] Listening at: http://0.0.0.0:8080 (26809)
-    12:45:58 web.1     | 2012-05-10 12:45:58 [26809] [INFO] Using worker: gevent
+    12:45:58 web.1     | 2012-05-10 12:45:58 [26809] [INFO] Using worker: sync
     12:45:58 web.1     | 2012-05-10 12:45:58 [26811] [INFO] Booting worker with pid: 26811
-    
+
 ### Use Environment Variables to manage configuration
 
 OpDemand uses environment variables to manage your application's configuration.  For example, the application listener must use the value of the `APPLICATION_PORT` environment variable.  The following code snippets demonstrates how this can work inside your application:
@@ -112,7 +112,7 @@ Start the Platform
 To start your platform use the `opdemand start` command:
 
 	$ opdemand start app
-	
+
 You will see real-time streaming log output as OpDemand orchestrates the platform's infrastructure and triggers the necessary SSH deployments.  Once the platform has finished starting you can access its services using an `opdemand show`.
 
     $ opdemand show app
@@ -137,4 +137,3 @@ This will trigger an OpDemand deploy action which will -- among other things -- 
 Additional Resources
 ====================
 * <http://www.opdemand.com>
-
