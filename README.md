@@ -35,16 +35,16 @@ If you're deploying the example application, it already conforms to these requir
 
 ### Use virtualenv and pip to manage dependencies
 
-On every deploy action, OpDemand will run an `source venv/bin/activate` followed by a `pip install -r requirements.txt` on all application workers to ensure dependencies are up to date.
+On every deploy action, OpDemand will run an `. venv/bin/activate` followed by a `pip install -r requirements.txt` on all application workers to ensure dependencies are up to date.
 
 To setup and activate virtualenv on your local workstation:
 
     $ virtualenv venv --distribute
-    $ source venv/bin/activate
+    $ . venv/bin/activate
 
 The last command will activate virtualenv for your current shell session.  To ensure you're using virtualenv and local dependencies, you'll need to re-run the `source venv/bin/activate` command for each new shell session.  With virtualenv active, you can safely install external dependencies for your application:
 
-    $ pip install flask gunicorn
+    $ sudo pip install flask gunicorn
 
 When you're done installing dependencies, use `pip freeze` to write out a new `requirements.txt` file that contains dependency information:
 
@@ -56,7 +56,7 @@ OpDemand uses a Foreman Procfile to manage the processes that serve up your appl
 
 	web: gunicorn -b 0.0.0.0:$APPLICATION_PORT app:app
 
-This tells OpDemand to run one web process using `gunicorn`.  You can test this out locally by running setting the `APPLICATION_PORT` environment variable and calling `foreman start`.
+This tells OpDemand to run one web process using `gunicorn`.  You can test this out locally by setting the `APPLICATION_PORT` environment variable and calling `foreman start`.
 
     $ export APPLICATION_PORT=8080
 	$ foreman start
@@ -79,8 +79,7 @@ The same is true for external services like databases, caches and queues.  Here 
     database_port = os.environ.get('DATABASE_PORT', 27017)
     connection = pymongo.Connection(database_host, database_port)
 
-Create a new Platform
----------------------
+<h2 id="create">Create a new Platform</h2>
 Use the `opdemand list` command to list the available infrastructure templates:
 
 	$ opdemand list | grep python
