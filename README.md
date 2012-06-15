@@ -18,7 +18,7 @@ The simplest way to get started is by forking OpDemand's sample application loca
 
 After forking the project, clone it to your local workstation using the SSH-style URL:
 
-    $ git clone git@github.com:<yourname>/example-python-flask.git example-python-flask
+    $ git clone git@github.com:mygithubuser/example-python-flask.git example-python-flask
     $ cd example-python-flask
 
 If you want to use an existing application, no problem -- just make sure you've cloned it from GitHub.
@@ -27,24 +27,24 @@ Prepare your Application
 ------------------------
 To use a Python application with OpDemand, you will need to conform to 3 basic requirements:
 
- * Use **virtualenv and pip** to manage dependencies
- * Use **Foreman** to manage processes
+ * Use [**virtualenv**](http://pypi.python.org/pypi/virtualenv) and [**pip**](http://pypi.python.org/pypi/pip) to manage dependencies
+ * Use [**foreman**](http://ddollar.github.com/foreman/) to manage processes
  * Use **Environment Variables** to manage configuration
 
-If you're deploying the example application, it already conforms to these requirements.  If you're in a rush, skip to [Create a Platform](#create).
+If you're deploying the example application, it already conforms to these requirements.  If you're in a rush, skip to [Create a new Service](#create-a-new-service).
 
 ### Use virtualenv and pip to manage dependencies
 
-On every deploy action, OpDemand will run an `. venv/bin/activate` followed by a `pip install -r requirements.txt` on all application workers to ensure dependencies are up to date.
+On every deploy action, OpDemand will run an `source venv/bin/activate` followed by a `pip install -r requirements.txt` on all application workers to ensure dependencies are up to date.
 
 To setup and activate virtualenv on your local workstation:
 
     $ virtualenv venv --distribute
-    $ . venv/bin/activate
+    $ source venv/bin/activate
 
 The last command will activate virtualenv for your current shell session.  To ensure you're using virtualenv and local dependencies, you'll need to re-run the `source venv/bin/activate` command for each new shell session.  With virtualenv active, you can safely install external dependencies for your application:
 
-    $ sudo pip install flask gunicorn
+    $ pip install flask gunicorn
 
 When you're done installing dependencies, use `pip freeze` to write out a new `requirements.txt` file that contains dependency information:
 
@@ -56,7 +56,7 @@ OpDemand uses a Foreman Procfile to manage the processes that serve up your appl
 
 	web: gunicorn -b 0.0.0.0:$APPLICATION_PORT app:app
 
-This tells OpDemand to run one web process using `gunicorn`.  You can test this out locally by setting the `APPLICATION_PORT` environment variable and calling `foreman start`.
+This tells OpDemand to run one web process using `gunicorn`.  You can test this out locally by running setting the `APPLICATION_PORT` environment variable and calling `foreman start`.
 
     $ export APPLICATION_PORT=8080
 	$ foreman start
@@ -79,7 +79,9 @@ The same is true for external services like databases, caches and queues.  Here 
     database_port = os.environ.get('DATABASE_PORT', 27017)
     connection = pymongo.Connection(database_host, database_port)
 
-<h2 id="create">Create a new Platform</h2>
+<a id="create-a-new-service"></a>
+Create a new Service
+---------------------
 Use the `opdemand list` command to list the available infrastructure templates:
 
 	$ opdemand list | grep python
@@ -88,13 +90,13 @@ Use the `opdemand list` command to list the available infrastructure templates:
     app/python/4node: Python Application (4-node with ELB)
     app/python/Nnode: Python Application (Auto Scaling)
 
-Use the `opdemand create` command to create a new platform based on one of the templates listed.  To create an `app/python/1node` platform with `app` as its handle/nickname.
+Use the `opdemand create` command to create a new service based on one of the templates listed.  To create an `app/python/1node` service with `app` as its handle/nickname.
 
 	$ opdemand create app --template=app/python/1node
 
-Configure the Platform
+Configure the Service
 ----------------------
-To quickly configure a platform from the command-line use `opdemand config [handle] --repository=detect`.  This will attempt to detect and install repository configuration including:
+To quickly configure a service from the command-line use `opdemand config [handle] --repository=detect`.  This will attempt to detect and install repository configuration including:
 
 * Detecting your GitHub repository URL, project and username
 * Generating and installing a secure SSH Deploy Key
@@ -106,25 +108,25 @@ More detailed configuration can be done using:
 
 Detailed configuration changes are best done via the web console, which exposes additional helpers, drop-downs and overrides.
 
-Start the Platform
+Start the Service
 ------------------
-To start your platform use the `opdemand start` command:
+To start your service use the `opdemand start` command:
 
 	$ opdemand start app
 
-You will see real-time streaming log output as OpDemand orchestrates the platform's infrastructure and triggers the necessary SSH deployments.  Once the platform has finished starting you can access its services using an `opdemand show`.
+You will see real-time streaming log output as OpDemand orchestrates the service's infrastructure and triggers the necessary SSH deployments.  Once the service has finished starting you can access its services using an `opdemand show`.
 
     $ opdemand show app
 
 	Application URL (URL used to access this application)
 	http://ec2-23-20-231-188.compute-1.amazonaws.com
 
-Open the URL and you should see "Powered by OpDemand" in your browser.  To check on the status of your platforms, use the `opdemand status` command:
+Open the URL and you should see "Powered by OpDemand" in your browser.  To check on the status of your services, use the `opdemand status` command:
 
 	$ opdemand status
 	app: Python Application (1-node) (status: running)
 
-Deploy the Platform
+Deploy the Service
 ----------------------
 As you make changes to your application code, push those to GitHub as you would normally.  When you're ready to deploy those changes, use the `opdemand deploy` command:
 
