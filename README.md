@@ -1,11 +1,13 @@
 # Python Quick Start Guide
 
-This guide will walk you through deploying a Python application to Amazon EC2 using OpDemand.
+This guide will walk you through deploying a Python application on Deis.
 
 ## Prerequisites
 
-* An [OpDemand account](http://www.opdemand.com/) that is [linked to your GitHub account](http://www.opdemand.com/docs/about-github-integration/)
-* An [OpDemand environment](http://www.opdemand.com/how-it-works/) that contains valid [AWS credentials](http://www.opdemand.com/docs/adding-aws-creds/)
+* A [User Account](http://docs.deis.io/en/latest/client/register/) on a [Deis Controller](http://docs.deis.io/en/latest/terms/controller/).
+* A [Deis Formation](http://docs.deis.io/en/latest/gettingstarted/concepts/#formations) that is ready to host applications
+
+If you do not yet have a controller or a Deis formation, please review the [Deis installation](http://docs.deis.io/en/latest/gettingstarted/installation/) instructions.
 
 ## Setup your workstation
 
@@ -15,14 +17,14 @@ This guide will walk you through deploying a Python application to Amazon EC2 us
 
 ## Clone your Application
 
-If you want to use an existing application, no problem.  You can also fork OpDemand's sample application located at <https://github.com/opdemand/example-python-flask>.  After forking the project, clone it to your local workstation using the SSH-style URL:
+If you want to use an existing application, no problem.  You can also use the Deis sample application located at <https://github.com/bengrunfeld/example-python-flask>.  Clone the example application to your local workstation:
 
-	$ git clone git@github.com:mygithubuser/example-python-flask.git
+    $ git clone https://github.com/bengrunfeld/example-python-flask.git
     $ cd example-python-flask
 
 ## Prepare your Application
 
-To use a Python application with OpDemand, you will need to conform to 3 basic requirements:
+To use a Python application with Deis, you will need to conform to 3 basic requirements:
 
  1. Use [Pip](http://pypi.python.org/pypi/pip) to manage dependencies
  2. Use [Foreman](http://ddollar.github.com/foreman/) to manage processes
@@ -32,7 +34,7 @@ If you're deploying the example application, it already conforms to these requir
 
 #### 1. Use Pip to manage dependencies
 
-Every time you deploy, OpDemand will run a `pip install -r requirements.txt` on all application instances to ensure dependencies are up to date.  Pip requires that you explicitly declare your dependencies using a [requirements.txt](http://www.pip-installer.org/en/latest/requirements.html) file.  Here is a very basic example:
+Pip requires that you explicitly declare your dependencies using a [requirements.txt](http://www.pip-installer.org/en/latest/requirements.html) file. Here is a very basic example:
 
     Flask==0.9
     Jinja2==2.6
@@ -48,8 +50,7 @@ We highly recommend isolating your dependencies inside a Python [virtualenv](htt
     
 You can then install dependencies on your local workstation with `pip install -r requirements.txt`:
 
-    $ pip install -r requirements.txt 
-    Password:
+    (venv)$ pip install -r requirements.txt 
     Downloading/unpacking Flask==0.9 (from -r requirements.txt (line 1))
     Downloading Flask-0.9.tar.gz (481kB): 481kB downloaded
     Running setup.py egg_info for package Flask
@@ -57,15 +58,13 @@ You can then install dependencies on your local workstation with `pip install -r
     Successfully installed Flask gunicorn Werkzeug
     Cleaning up...
 
-If your dependencies require any system packages, you can install those later by specifying a list of custom packages in the Instance configuration or by customizing the deploy script to install your own packages.
-
 #### 2. Use Foreman to manage processes
 
-OpDemand uses [Foreman](http://ddollar.github.com/foreman/) to manage the processes that serve up your application.  Foreman relies on a `Procfile` that lives in the root of your repository.  This is where you define the command(s) used to run your application.  Here is an example `Procfile`:
+Deis relies on a [Foreman](http://ddollar.github.com/foreman/) `Procfile` that lives in the root of your repository.  This is where you define the command(s) used to run your application.  Here is an example `Procfile`:
 
     web: gunicorn -b 0.0.0.0:$PORT app:app
 
-This tells OpDemand to run web application workers using the command `gunicorn -b 0.0.0.0:$PORT app:app`.  You can test this locally by running `foreman start`.
+This tells Deis to run `web` workers using the command `gunicorn -b 0.0.0.0:$PORT app:app`. You can test this locally by running `foreman start`.
 
     (venv)$ foreman start
     15:05:12 web.1  | started with pid 88517
@@ -78,94 +77,105 @@ You should now be able to access your application locally at <http://localhost:5
 
 #### 3. Use Environment Variables to manage configuration
 
-OpDemand uses environment variables to manage your application's configuration.  For example, your application listener must use the value of the `PORT` environment variable.  The following code snippet demonstrates how this can work inside your application:
+Deis uses environment variables to manage your application's configuration. For example, your application listener must use the value of the `PORT` environment variable. The following code snippet demonstrates how this can work inside your application:
 
-	port = os.environ.get('PORT', 5000)    # fallback to 5000
+    port = os.environ.get('PORT', 5000)    # fallback to 5000
 
-The same is true for external services like databases, caches and queues.  Here is an example in that shows how to connect to a MongoDB database using the `DATABASE_HOST` and `DATABASE_PORT` environment variables:
+## Create a new Application
 
-    import pymongo
-    database_host = os.environ.get('DATABASE_HOST', 'localhost')
-    database_port = os.environ.get('DATABASE_PORT', 27017)
-    connection = pymongo.Connection(database_host, database_port)
+Per the prerequisites, we assume you have access to an existing Deis formation. If not, please review the Deis [installation instuctions](http://docs.deis.io/en/latest/gettingstarted/installation/).
 
-## Add a Python Stack to your Environment
+Use the following command to create an application on an existing Deis formation.
 
-We now have an application that is ready for deployment, along with an [OpDemand environment](http://www.opdemand.com/how-it-works/) that includes [AWS credentials](http://www.opdemand.com/docs/adding-aws-creds/).  Let's add a basic Python stack to host our example application:
+    $ deis create --formation=<formationName> --id=<appName>
+    <show output>
+    Creating application... done, created pythonApp
+    Git remote deis added
+    
+If an ID is not provided, one will be auto-generated for you.
 
-* Click the **Add/Discover Services** button
-* Select the **Python** stack and press **Save**
+## Deploy your Application
 
-A typical application stack includes:
+Use `git push` to deploy your application.
 
-* An **EC2 Load Balancer** used to route traffic to your EC2 instances
-* An **EC2 Instance** used to host the application behind [Nginx](http://wiki.nginx.org/Main)
-* An **EC2 Security Group** used as a virtual firewall inside EC2
-* An **EC2 Key Pair** used for deployment automation
+    $ git push deis master
+    <show output>
+    Counting objects: 62, done.
+    Delta compression using up to 4 threads.
+    Compressing objects: 100% (37/37), done.
+    Writing objects: 100% (62/62), 12.98 KiB, done.
+    Total 62 (delta 18), reused 62 (delta 18)
+gi         Python app detected
 
-## Deploy the Environment
 
-To deploy this application stack, press the green deploy button on the environment toolbar.
+Once your application has been deployed, use `deis open` to view it in a browser. To find out more info about your application, use `deis info`.
 
-![Deploy your environment](http://www.opdemand.com/wp-content/uploads/2013/03/Screen-Shot-2013-03-27-at-1.04.35-PM.png)
+## Scale your Application
 
-### Specify Required Configuration
+To scale your application's [Docker](http://docker.io) containers, use `deis scale`.
 
-OpDemand provides reasonable defaults, but you'll want to review a few configuration values:
+    $ deis scale web=8
+    <show output>
+    Scaling containers... but first, coffee!
+    done in 16s
+    
+    === elfish-radiator Containers
+    
+    --- web: `gunicorn -b 0.0.0.0:$PORT app:app`
+    web.1 up 2013-10-23T19:02:35.666Z (pythonFormation-runtime-1)
+    web.2 up 2013-10-23T19:05:33.067Z (pythonFormation-runtime-1)
+    web.3 up 2013-10-23T19:05:33.082Z (pythonFormation-runtime-1)
+    web.4 up 2013-10-23T19:05:33.095Z (pythonFormation-runtime-1)
+    web.5 up 2013-10-23T19:05:33.109Z (pythonFormation-runtime-1)
+    web.6 up 2013-10-23T19:05:33.125Z (pythonFormation-runtime-1)
+    web.7 up 2013-10-23T19:05:33.143Z (pythonFormation-runtime-1)
+    web.8 up 2013-10-23T19:05:33.162Z (pythonFormation-runtime-1)
 
-* Check the default *Regions*, *Zones* and *Instance Types*
-* Add your public key to *SSH Authorized Keys* so you can SSH into Instances
-* Make sure the *Repository URL* and *Repository Revision* are correct for your application
-* If your app is in a private GitHub repository, click **Create Deploy Key** to have OpDemand install a secure deploy key using the GitHub API
 
-Once you've reviewed and modified the required configuration, press **Save & Continue** to initiate your first deploy.
+## Configure your Application
 
-### Wait until Active
+Deis applications are configured using environment variables. The example application includes a special `POWERED_BY` variable to help demonstrate how you would provide application-level configuration. 
 
-OpDemand will now orchestrate the deployment of your application stack to your cloud providers.  Once the environment has an **Active** status, your application should be good to go.
+    $ curl -s http://yourapp.com
+    Powered by Deis
+    $ deis config:set POWERED_BY=Python
+    <show output>
+    === elfish-radiator
+    POWERED_BY: Python
+    $ curl -s http://yourapp.com
+    Powered by Python
 
-This can take a while depending on the cloud provider, service types, instance sizes and the build/deploy scripts (are you compiling something?).  While you wait, grab some coffee and:
+This method is also how you connect your application to backing services like databases, queues and caches.
 
-* Watch the Key Pairs and Security Groups build, deploy and become **Active**
-* Watch the Instances build, deploy and become **Active** (this takes a few minutes, check out the real-time log feedback)
-* Watch the Load Balancers build, deploy and become **Active**
+To experiment in your application environment, use `deis run` to execute one-off commands against your application.
 
-### Troubleshooting
+    $ deis run ls -la
+    <show output>
+    total 60
+    drwxr-xr-x  4 root root 4096 Oct 23 19:12 .
+    drwxr-xr-x 57 root root 4096 Oct 23 19:14 ..
+    -rw-r--r--  1 root root  237 Oct 23 19:01 .gitignore
+    drwxr-xr-x  3 root root 4096 Oct 23 19:01 .heroku
+    drwxr-xr-x  2 root root 4096 Oct 23 19:02 .profile.d
+    -rw-r--r--  1 root root   18 Oct 23 19:02 .release
+    -rw-r--r--  1 root root  553 Oct 23 19:02 LICENSE
+    -rw-r--r--  1 root root   39 Oct 23 19:02 Procfile
+    -rw-r--r--  1 root root 9424 Oct 23 19:02 README.md
+    -rw-r--r--  1 root root  330 Oct 23 19:02 app.py
+    -rw-r--r--  1 root root  602 Oct 23 19:12 app.pyc
+    -rw-r--r--  1 root root   40 Oct 23 19:02 requirements.txt
+    -rw-r--r--  1 root root   13 Oct 23 19:02 runtime.txt
 
-It's not uncommon to experience errors or warnings during deploys.  If you get stuck on an error you can click **Report This** to [open a ticket](https://desk.opdemand.com/) with the OpDemand help desk.
+## Troubleshoot your Application
 
-* For *Cloud Provider Errors*, check the service's primary configuration fields
-* For *SSH Key Warnings*, make sure Deployment configuration sections contain valid SSH private keys
-* For *SSH Return Code Warnings*, SSH into the instance and make sure the Build & Deploy scripts execute successfully
-* For *Other Warnings*, try re-deploying to bring the service back to active status
+To view your application's log output, including any errors or stack traces, use `deis logs`.
 
-###### SSH Access
-
-Click the **SSH** button on the toolbar to SSH into Instances.  If you didn't add your SSH key initially, you can always modify SSH keys later, save the new configuration and **Deploy** again to update the Instance.
-
-![SSH into your Instance](http://www.opdemand.com/wp-content/uploads/2013/03/Screen-Shot-2013-03-27-at-1.10.19-PM.png)
-
-## Access your Application
-
-Once your application is active, you can access its [published URLs](http://www.opdemand.com/how-it-works/monitor/) on the Environment's **Monitor** tab.  If you're looking at a service that publishes something, you can jump to the published URL in the upper-right corner of the service:
-
-![Access your application](http://www.opdemand.com/wp-content/uploads/2013/03/Screen-Shot-2013-03-27-at-2.43.09-PM.png)
-
-For the example application you should see: *Powered by OpDemand*
-
-## Update your Application
-
-As you make changes to your application or deployment code:
-
-1. **Push** the code to GitHub
-2. **Deploy** the environment
-
-OpDemand will use the latest environment configuration to update cloud services, SSH into instances, pull down source code from GitHub, install dependencies, re-package your application and restart services where necessary.
-
-If you want to integrate OpDemand into your command-line workflow, `opdemand deploy` can also be used to trigger deploys.  See [Using the OpDemand Command-Line Interface](http://www.opdemand.com/docs/) more details.
+    $ deis logs
+    <show output>
 
 ## Additional Resources
 
-* [OpDemand Documentation](http://www.opdemand.com/docs/)
-* [OpDemand - How It Works](https://www.opdemand.com/how-it-works/)
-
+* [Get Deis](http://deis.io/get-deis/)
+* [GitHub Project](https://github.com/opdemand/deis)
+* [Documentation](http://docs.deis.io/)
+* [Blog](http://deis.io/blog/)
