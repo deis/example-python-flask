@@ -139,9 +139,7 @@ Deis applications are configured using environment variables. The example applic
 	$ curl -s http://yourapp.yourformation.com
 	Powered by Python
 
-`deis config:set` is also how you connect your application to backing services like databases, queues and caches.
-
-Use `deis run` to execute one-off commands against your application for things like database administration, initial application setup and inspecting your container environment.
+`deis config:set` is also how you connect your application to backing services like databases, queues and caches. You can use `deis run` to execute one-off commands against your application for things like database administration, initial application setup and inspecting your container environment.
 
 	$ deis run ls -la
 	total 56
