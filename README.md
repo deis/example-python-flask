@@ -17,9 +17,9 @@ If you do not yet have a controller or a Deis formation, please review the [Deis
 
 ## Clone your Application
 
-If you want to use an existing application, no problem.  You can also use the Deis sample application located at <https://github.com/bengrunfeld/example-python-flask>.  Clone the example application to your local workstation:
+If you want to use an existing application, no problem.  You can also use the Deis sample application located at <https://github.com/opdemand/example-python-flask>.  Clone the example application to your local workstation:
 
-    $ git clone https://github.com/bengrunfeld/example-python-flask.git
+    $ git clone https://github.com/opdemand/example-python-flask.git
     $ cd example-python-flask
 
 ## Prepare your Application
@@ -85,14 +85,14 @@ Per the prerequisites, we assume you have access to an existing Deis formation. 
 Use the following command to create an application on an existing Deis formation.
 
     $ deis create --formation=<formationName> --id=<appName>
-	Creating application... done, created island-lollipop
+	Creating application... done, created <appName>
 	Git remote deis added
     
 If an ID is not provided, one will be auto-generated for you.
 
 ## Deploy your Application
 
-Use `git push` to deploy your application.
+Use `git push deis master` to deploy your application.
 
 	$ git push deis master
 	Counting objects: 65, done.
@@ -108,13 +108,13 @@ Once your application has been deployed, use `deis open` to view it in a browser
 
 ## Scale your Application
 
-To scale your application's [Docker](http://docker.io) containers, use `deis scale`.
+To scale your application's [Docker](http://docker.io) containers, use `deis scale` and specify the number of containers for each process type defined in your application's `Procfile`. For example, `deis scale web=8`.
 
 	$ deis scale web=8
 	Scaling containers... but first, coffee!
 	done in 16s
 	
-	=== island-lollipop Containers
+	=== <appName> Containers
 	
 	--- web: `gunicorn -b 0.0.0.0:$PORT app:app`
 	web.1 up 2013-10-25T20:00:11.741Z (pythonFormation-runtime-1)
@@ -131,17 +131,17 @@ To scale your application's [Docker](http://docker.io) containers, use `deis sca
 
 Deis applications are configured using environment variables. The example application includes a special `POWERED_BY` variable to help demonstrate how you would provide application-level configuration. 
 
-	$ curl -s http://yourapp.com
+	$ curl -s http://yourapp.yourformation.com
 	Powered by Deis
 	$ deis config:set POWERED_BY=Python
-	=== island-lollipop
+	=== <appName>
 	POWERED_BY: Python
-	$ curl -s http://yourapp.com
+	$ curl -s http://yourapp.yourformation.com
 	Powered by Python
 
-This method is also how you connect your application to backing services like databases, queues and caches.
+`deis config:set` is also how you connect your application to backing services like databases, queues and caches.
 
-To experiment in your application environment, use `deis run` to execute one-off commands against your application.
+Use `deis run` to execute one-off commands against your application for things like database administration, initial application setup and inspecting your container environment.
 
 	$ deis run ls -la
 	total 56
