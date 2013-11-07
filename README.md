@@ -162,7 +162,10 @@ Deis applications are configured using environment variables. The example applic
 To view your application's log output, including any errors or stack traces, use `deis logs`.
 
     $ deis logs
-    <show output>
+	Nov  7 17:02:20 ip-172-31-11-82 exotic-aqualung[web.1]: 2013-11-07 17:02:20 [13] [INFO] Starting gunicorn 0.17.2
+	Nov  7 17:02:20 ip-172-31-11-82 exotic-aqualung[web.1]: 2013-11-07 17:02:20 [13] [INFO] Listening at: http://0.0.0.0:10003 (13)
+	Nov  7 17:02:20 ip-172-31-11-82 exotic-aqualung[web.1]: 2013-11-07 17:02:20 [13] [INFO] Using worker: sync
+	Nov  7 17:02:20 ip-172-31-11-82 exotic-aqualung[web.1]: 2013-11-07 17:02:20 [18] [INFO] Booting worker with pid: 18
 
 ## Additional Resources
 
